@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "webhook-dispatcher"
+version = "0.1.0"
+description = "Fila local para envio de eventos a webhooks"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+webhook-dispatcher = "webhook_dispatcher.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
