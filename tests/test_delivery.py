@@ -1,9 +1,13 @@
 import json
+import tempfile
 import threading
 import unittest
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from pathlib import Path
 
 from webhook_dispatcher.delivery import send
+from webhook_dispatcher.queue import EventQueue
+from webhook_dispatcher.worker import run_once
 
 
 class DeliveryTests(unittest.TestCase):
@@ -55,3 +59,14 @@ class DeliveryTests(unittest.TestCase):
         result = send(self.event("/redirect"))
         self.assertEqual(result.status_code, 307)
         self.assertEqual(len(self.received), 1)
+
+    def test_complete_delivery_updates_saved_history(self):
+        with tempfile.TemporaryDirectory() as directory:
+            queue = EventQueue(Path(directory) / "events.db")
+            event_id = queue.add(self.event("/ok")["url"], {"order_id": "PED-1042"})
+            self.assertEqual(run_once(queue)["delivered"], 1)
+            row = EventQueue(queue.path).list()[0]
+            self.assertEqual(row["status"], "delivered")
+            self.assertEqual(row["http_status"], 204)
+            self.assertEqual(row["attempts"], 1)
+            self.assertEqual(self.received[0], ({"order_id": "PED-1042"}, event_id))

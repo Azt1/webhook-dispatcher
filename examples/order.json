@@ -1,0 +1,6 @@
+{
+  "event": "order.created",
+  "order_id": "PED-1042",
+  "total": 149.9,
+  "currency": "BRL"
+}
