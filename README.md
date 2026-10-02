@@ -35,6 +35,14 @@ python -m webhook_dispatcher list
 
 O primeiro terminal mostra o pedido recebido. Na consulta da fila, o evento deve aparecer com status `delivered` e código HTTP `204`. Use Ctrl+C para encerrar o receptor.
 
+Para consultar apenas os envios que falharam:
+
+```powershell
+python -m webhook_dispatcher list --status failed
+```
+
+Você também pode usar `--status pending` para os pendentes ou `--status delivered` para os entregues. Sem o filtro, `list` mostra todos os eventos.
+
 O banco fica em `data/events.db`, fora do Git. Para usar outro arquivo, passe `--db` antes do comando:
 
 ```powershell

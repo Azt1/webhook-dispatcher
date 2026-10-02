@@ -38,3 +38,20 @@ class QueueTests(unittest.TestCase):
     def test_unknown_id_is_rejected(self):
         with self.assertRaises(ValueError):
             self.queue.record("missing", "delivered")
+
+    def test_list_filters_by_status_without_changing_events(self):
+        pending_id = self.queue.add("http://localhost:9000", {"order": 1})
+        delivered_id = self.queue.add("http://localhost:9000", {"order": 2})
+        failed_id = self.queue.add("http://localhost:9000", {"order": 3})
+        self.queue.record(delivered_id, "delivered", 204)
+        self.queue.record(failed_id, "failed", 400, "HTTP 400")
+        before = self.queue.list()
+        for status, event_id in [("pending", pending_id), ("delivered", delivered_id),
+                                 ("failed", failed_id)]:
+            with self.subTest(status=status):
+                self.assertEqual([event["id"] for event in self.queue.list(status)], [event_id])
+        self.assertEqual(self.queue.list(), before)
+
+    def test_list_rejects_invalid_status(self):
+        with self.assertRaises(ValueError):
+            self.queue.list("unknown")

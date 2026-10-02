@@ -44,9 +44,17 @@ class EventQueue:
             )
         return event_id
 
-    def list(self) -> list[dict]:
+    def list(self, status: str | None = None) -> list[dict]:
+        if status is not None and status not in {"pending", "delivered", "failed"}:
+            raise ValueError("Status inválido")
         with closing(self._connect()) as db:
-            return [dict(row) for row in db.execute("SELECT * FROM events ORDER BY created_at, id")]
+            if status is None:
+                rows = db.execute("SELECT * FROM events ORDER BY created_at, id")
+            else:
+                rows = db.execute(
+                    "SELECT * FROM events WHERE status = ? ORDER BY created_at, id", (status,)
+                )
+            return [dict(row) for row in rows]
 
     def ready(self, now: float | None = None, limit: int = 100) -> list[dict]:
         if limit < 1:
